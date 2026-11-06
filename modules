@@ -1,5 +1,12 @@
 import sys
 import os
+import streamlit as st
+
+# Root path fix for module imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from parthis_core import ParthisAgent
+from modules.local_memory import LocalMemoryEngine
 
 # Step 1: Critical Termux Dynamic Patch (ChromaDB import hone se pehle zaroori hai)
 try:
