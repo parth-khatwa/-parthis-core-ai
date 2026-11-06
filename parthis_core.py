@@ -9,14 +9,14 @@ class ParthisAgent:
         """
         self.agent_name = agent_name
         self.primary_model = primary_model
-        
-        # API 404 Crash Prevention Fallback Priority Matrix
+
+        # Currently Active & Supported Production Models Matrix
         self.fallback_chain = [
             self.primary_model,
             "gemini-1.5-pro",
-            "gemini-pro"
+            "gemini-2.0-flash"
         ]
-        
+
         self.system_prompt = (
             f"You are {self.agent_name}, an autonomous, resilient, and mobile-native AI assistant. "
             "You run with high error recovery, vector memory context, and modular task execution."
@@ -47,7 +47,7 @@ class ParthisAgent:
                 last_error = e
                 print(f"[{self.agent_name}] Warning: Model '{model_name}' failed ({e}). Attempting next fallback...")
                 continue
-                
+
         return f"Critical Failure: All fallback model endpoints failed to execute. Last error: {last_error}"
 
 if __name__ == "__main__":
