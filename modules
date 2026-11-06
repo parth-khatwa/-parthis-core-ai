@@ -1,0 +1,65 @@
+import sys
+
+# Step 1: Critical Termux Dynamic Patch (ChromaDB import hone se pehle zaroori hai)
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
+import chromadb
+import os
+
+class LocalMemoryEngine:
+    def __init__(self, db_path: str = "./data/parthis_memory"):
+        """
+        Termux-compatible Vector Store Engine using ChromaDB
+        """
+        self.db_path = db_path
+        
+        # Ensure data directory exists
+        os.makedirs(self.db_path, exist_ok=True)
+        
+        # Initialize Persistent ChromaDB Client
+        self.client = chromadb.PersistentClient(path=self.db_path)
+        
+        # Get or create collection for Parthis RAG memory
+        self.collection = self.client.get_or_create_collection(
+            name="parthis_knowledge_base"
+        )
+        print(f"[LocalMemoryEngine] SQLite patch verified. Memory online at: {self.db_path}")
+
+    def add_memory(self, doc_id: str, text_content: str, metadata: dict = None):
+        """
+        Vector Database mein naya knowledge store karne ke liye
+        """
+        try:
+            self.collection.upsert(
+                ids=[doc_id],
+                documents=[text_content],
+                metadatas=[metadata] if metadata else None
+            )
+            return True
+        except Exception as e:
+            print(f"[LocalMemoryEngine] Error adding memory: {e}")
+            return False
+
+    def recall_context(self, query: str, top_k: int = 3) -> list:
+        """
+        Query ke basis par relevant vector memories retrieve karne ke liye
+        """
+        try:
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=top_k
+            )
+            documents = results.get("documents", [[]])[0]
+            return documents
+        except Exception as e:
+            print(f"[LocalMemoryEngine] Error recalling memory: {e}")
+            return []
+
+if __name__ == "__main__":
+    memory = LocalMemoryEngine()
+    memory.add_memory(doc_id="test_1", text_content="Parthis is a resilient autonomous AI assistant.")
+    print("Test Recall:", memory.recall_context("Who is Parthis?"))
